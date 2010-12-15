@@ -67,9 +67,9 @@ class UgcHelper extends AppHelper {
 		$url = $this->url($path, 'css', $protocol);
 		
 		if($rel == 'import') {
-			$out = sprintf($this->Html->tags['style'], $this->_parseAttributes($htmlAttributes, null, '', ' '), '@import url(' . $url . ');');
+			$out = sprintf($this->Html->tags['style'], $this->_parseAttributes($attributes, null, '', ' '), '@import url(' . $url . ');');
 		} else {
-			$out = sprintf($this->Html->tags['css'], $rel, $url, $this->_parseAttributes($htmlAttributes, null, '', ' '));
+			$out = sprintf($this->Html->tags['css'], $rel, $url, $this->_parseAttributes($attributes, null, '', ' '));
 		}
 		
 		$out = $this->output($out);
