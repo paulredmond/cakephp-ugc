@@ -14,6 +14,11 @@
 class UgcHelper extends AppHelper {
 	
 	/**
+	 * Helpers that this helper will use.
+	 */
+	public $helpers = array('Html');
+	
+	/**
 	 * Stores defaults for UGC configuration.
 	 */
 	protected $defaults = array(
@@ -22,21 +27,50 @@ class UgcHelper extends AppHelper {
 		'force' => false
 	);
 	
+	/**
+	 * By default CDN is disabled unless server settings are configured.
+	 * @access protected
+	 */
+	protected $disabled = false;
+	
+	/**
+	 * Configuration settings from the Controllers::$helpers array.
+	 * Merged with UgcHelper::$default during instantiation.
+	 * 
+	 * @access protected
+	 */
 	protected $settings = false;
 	
-	public $helpers = array('Html');
-	
+	/**
+	 * Array of servers configured.
+	 * @access protected
+	 */
 	protected $servers = array();
+	
+	/**
+	 * Port of the request.
+	 * 
+	 * @access protected
+	 */
+	protected $port = 80;
+	
+	/**
+	 * Http protocol for the request. Set to https if needed.
+	 */
+	protected $httpProtocol = 'https';
 	
 	public function __construct($options=null) {
 		
 		parent::__construct($options);
 		
-		$this->settings = array_merge($this->defaults, (array) Configure::read('UGC'));
-		
+		$this->settings = array_merge($this->defaults, (array) $options);
+		$config = (array) Configure::read('UGC');
 		if(false !== $servers = $this->settings['servers']) {
 			$this->servers = (array) $servers;
 		}
+		$this->disabled = (bool) $config['disabled'];
+		$this->port = getenv('SERVER_PORT');
+		$this->httpProtocol = $this->port === 443 ? 'https' : 'http';
 	}
 	
 	/**
@@ -55,13 +89,21 @@ class UgcHelper extends AppHelper {
 	/**
 	 * Convenience method for serving css from the UGC pool.
 	 */
-	public function css($path, $rel = 'stylesheet', $attributes=array(), $inline=false, $protocol=false) {
+	public function css($path, $rel = null, $attributes=array(), $inline=false, $protocol=false) {
 		$out = '';
-		
+
 		# Only concerned with assets that don't have the full URL.
 		# Might add a check to see if the host matches the environment.
 		if( $this->isUgcEnabled() === false || $this->hasProtocol($path) ) {
 			return $this->Html->css($path, $rel, $attributes, $inline);
+		}
+		
+		if ($path[0] !== '/') {
+			$path = CSS_URL . $path;
+		}
+		
+		if (strpos($path, '?') === false && substr($path, -4) !== '.css') {
+			$path .= '.css';
 		}
 		
 		$url = $this->url($path, 'css', $protocol);
@@ -69,11 +111,12 @@ class UgcHelper extends AppHelper {
 		if($rel == 'import') {
 			$out = sprintf($this->Html->tags['style'], $this->_parseAttributes($attributes, null, '', ' '), '@import url(' . $url . ');');
 		} else {
+			$rel = $rel === null ? 'stylesheet' : $rel;
 			$out = sprintf($this->Html->tags['css'], $rel, $url, $this->_parseAttributes($attributes, null, '', ' '));
 		}
 		
 		$out = $this->output($out);
-		
+
 		if($inline) {
 			return $out;
 		} else {
@@ -105,13 +148,23 @@ class UgcHelper extends AppHelper {
 			return $path;
 		}
 		
-		if(!$protocol) {
-			$protocol = $this->settings['protocol'];
+		// Override $protocol parameter if this is https or it's set to false.
+		if ($this->isHttps() || !$protocol) {
+			$protocol = $this->httpProtocol;
 		}
-		
+
 		$protocol = ($protocol == '//') ? '' : $protocol . ':';
-		
+		$path = ltrim($path, '/');
+		$path = str_replace('//', '/', $path); // Clean up double slashes in path.
 		return sprintf('%s//%s/%s', $protocol, $this->getServer($type), $path);
+	}
+	
+	public function getHttpProtocol() {
+		return $this->httpProtocol;
+	}
+	
+	public function isHttps() {
+		return ($this->httpProtocol === 'https');
 	}
 	
 	private function hasProtocol($path) {
@@ -127,7 +180,7 @@ class UgcHelper extends AppHelper {
 	 * Determine if UGC is configured.
 	 */
 	public function isUgcEnabled() {
-		return !empty($this->servers);
+		return (!empty($this->servers) && !$this->disabled);
 	}
 	
 	
