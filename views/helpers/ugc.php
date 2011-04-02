@@ -57,7 +57,7 @@ class UgcHelper extends AppHelper {
 	/**
 	 * Http protocol for the request. Set to https if needed.
 	 */
-	protected $httpProtocol = 'https';
+	protected $httpProtocol = 'http';
 	
 	public function __construct($options=null) {
 		
