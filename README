@@ -1,6 +1,12 @@
 Plugin for dealing with CDN content in a CakePHP application. This is a simple helper that will quickly help you serve CDN content without much configuration. I realize that existing applications probably already use HTML helper extensively -- this helper is probably geared towards new applications in development or smaller projects.
 
 ========================
+TODO
+========================
+@TODO Have a "force" setting that forces all scripts in the view object to use CDN if it does not already have a protocol.
+@TODO Default "force" = false
+ 
+========================
 Installation
 ========================
 From plugins or APP/plugins run:
