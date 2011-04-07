@@ -92,9 +92,7 @@ class UgcHelper extends AppHelper {
 	public function css($path, $rel = null, $attributes=array(), $inline=false, $protocol=false) {
 		$out = '';
 
-		# Only concerned with assets that don't have the full URL.
-		# Might add a check to see if the host matches the environment.
-		if( $this->isUgcEnabled() === false || $this->hasProtocol($path) ) {
+		if (!$this->_useCdnUrl($path)) {
 			return $this->Html->css($path, $rel, $attributes, $inline);
 		}
 		
@@ -126,18 +124,40 @@ class UgcHelper extends AppHelper {
 	}
 	
 	
-	public function js() {
+	public function js($url, $options = array(), $protocol = false) {
+		$srcFiles = array();
+		$_url = !is_array($url) ? array($url) : $url;		
+		foreach ($_url as $i) {
+			if (strpos($i, '://') === false) {
+				if ($i[0] !== '/') {
+					$i = JS_URL . $i;
+				}
+				if (strpos($i, '?') === false && substr($i, -3) !== '.js') {
+					$i .= '.js';
+				}
+				$i = $this->assetTimestamp($this->webroot($i));
+			}
+			$srcFiles[] = $this->_useCdnUrl($i) ? $this->url($i, 'js', $protocol) : $i;
+		}
 		
+		if (count($srcFiles) === 1) {
+			$srcFiles = $srcFiles[0];
+		}
+		return $this->Html->script($srcFiles, $options);
 	}
 	
 	
-	public function image() {
-	
-	}
-	
-	
-	public function asset($type) {
-	
+	public function image($path, $options = array(), $protocol = false) {
+		if (is_array($path)) {
+			$path = $this->url($path);
+		} elseif (strpos($path, '://') === false) {
+			if ($path[0] !== '/') {
+				$path = IMAGES_URL . $path;
+			}
+			$path = $this->assetTimestamp($this->webroot($path));
+		}
+		$src = $this->_useCdnUrl($path) ? $this->url($path, 'img', $protocol) : $path;
+		return $this->Html->image($src, $options);
 	}
 	
 	/**
@@ -176,11 +196,15 @@ class UgcHelper extends AppHelper {
 		return $protocol;
 	}
 	
+	private function _useCdnUrl($path) {
+		return !($this->isUgcEnabled() === false || $this->hasProtocol($path));
+	}
+	
 	/**
 	 * Determine if UGC is configured.
 	 */
 	public function isUgcEnabled() {
-		return (!empty($this->servers) && !$this->disabled);
+		return (!empty($this->servers) && isset($this->servers['default']) && !$this->disabled);
 	}
 	
 	
