@@ -93,7 +93,8 @@ class UgcHelper extends AppHelper {
 		$out = '';
 
 		if (!$this->_useCdnUrl($path)) {
-			return $this->Html->css($path, $rel, $attributes, $inline);
+			$attributes['inline'] = $inline;
+			return $this->Html->css($path, $rel, $attributes);
 		}
 		
 		if ($path[0] !== '/') {

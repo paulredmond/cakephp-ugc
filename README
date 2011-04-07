@@ -38,6 +38,9 @@ $this->Ugc->js('myjavascript') // url in output will be http(s)://js.yourcdn.com
 
 $this->Ugc->image('myimage.jpg') // url output will be http(s)://img.yourcdn.com/img/myimage.jpg
 
+// Using relative protocol on CDN
+$this->Ugc->css('mycss', null, array(), false, '//'); /* Will output //css.yourcdn.com/css/mycss.css */
+
 * if port = 443 all urls generated from UGC helper will be forced to return https.
 * if http:// or https:// is detected in the url UgcHelper will fall back to using HTML helper.
 
