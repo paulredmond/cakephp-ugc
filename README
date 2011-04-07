@@ -45,4 +45,4 @@ $this->Ugc->image('myimage.jpg') // url output will be http(s)://img.yourcdn.com
 ========================
 Disable/Enable site-wide
 ========================
-Configure::write('UGC.disabled', false);
+Configure::write('UGC.disabled', (bool));
