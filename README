@@ -1,1 +1,48 @@
-Plugin for dealing with UGC content in a CakePHP application.
+Plugin for dealing with CDN content in a CakePHP application. This is a simple helper that will quickly help you serve CDN content without much configuration. I realize that existing applications probably already use HTML helper extensively -- this helper is probably geared towards new applications in development or smaller projects.
+
+========================
+Installation
+========================
+From plugins or APP/plugins run:
+
+git clone git@github.com:paulredmond/cakephp-ugc.git ugc
+(eventually will branch/tag, but use master for now)
+
+
+========================
+Basic Configuration
+========================
+
+public $helpers = array(
+	'Ugc.Ugc' => array(
+		'servers' => array(
+			'css' => array('css.yourcdn.com'),
+			'default' => array('cdn.yourcdn.com'), // default MUST be configured, or UGC will be disabled.
+			'js' => array('js.yourcdn.com'),
+			'img' => array('img.yourcdn.com')
+		)
+	)
+);
+
+========================
+Usage
+========================
+Ugc helper will operate similar to the HTML helper, only the URLs will be pointed to the servers if configured and UGC is enabled. Otherwise, this helper falls back to default HTML helper funcitonality.
+
+$this->Ugc->css('mycss') // will output http(s)://css.yourcdn.com/css/mycss.css if configured like the example above.
+
+$this->Ugc->js('/yo/myjavascript') // url output will be http(s)://js.yourcdn.com/yo/myjavascript.js
+// Using absolute path will match app/webroot/yo/myjavascript.js file if UGC is disabled.
+
+$this->Ugc->js('myjavascript') // url in output will be http(s)://js.yourcdn.com/js/myjavascript.js
+
+$this->Ugc->image('myimage.jpg') // url output will be http(s)://img.yourcdn.com/img/myimage.jpg
+
+* if port = 443 all urls generated from UGC helper will be forced to return https.
+* if http:// or https:// is detected in the url UgcHelper will fall back to using HTML helper.
+
+
+========================
+Disable/Enable site-wide
+========================
+Configure::write('UGC.disabled', false);
