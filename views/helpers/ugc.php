@@ -149,7 +149,7 @@ class UgcHelper extends AppHelper {
 	
 	public function image($path, $options = array(), $protocol = false) {
 		if (is_array($path)) {
-			$path = $this->url($path);
+			$path = $this->Html->url($path);
 		} elseif (strpos($path, '://') === false) {
 			if ($path[0] !== '/') {
 				$path = IMAGES_URL . $path;
