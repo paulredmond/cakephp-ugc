@@ -81,8 +81,28 @@ class UgcHelper extends AppHelper {
 	 */
 	public function afterRender()
 	{
-		//$view = ClassRegistry::getObject('view');
-		//$scripts = $view->__scripts;
+		if ($this->settings['force'] === true) {
+			$view = ClassRegistry::getObject('view');
+			foreach ($view->__scripts as $k => $script) {
+				$html = new DomDocument();
+				$html->loadHTML($script);
+				$type = false;
+				if (strstr($script, '.css')) {
+					$url = $html->getElementsByTagName('link')->item(0)->getAttribute('href');
+					$type = 'css';
+				} elseif(strstr($script, '.js')) {
+					$url = $html->getElementsByTagName('script')->item(0)->getAttribute('src');
+					$type = 'js';
+				} else {
+					continue;
+				}
+				
+				if ($url !== false && !$this->hasProtocol($url)) {
+					$new = $this->url($url, $type);
+					$scripts[$k] = str_replace($url, $new, $script);
+				}
+			}
+		}
 	}
 
 	
